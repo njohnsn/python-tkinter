@@ -68,6 +68,31 @@ variables['Seed Sample'] = tk.StringVar()
 ttk.Label(r_info, text='Seed Sample').grid(row=2, column=2)
 ttk.Entry(
     r_info,
-    textvariable==variables['Seed Sample']
+    textvariable=variables['Seed Sample']
 ).grid(row=3, column=2, sticky=(tk.W + tk.E))
+
+e_info = ttk.LabelFrame(drf, text="Environment Data")
+e_info.grid(sticky=(tk.W + tk.E))
+for i in range(3):
+    e_info.columnconfigure(i, weight=1)
+
+variables['Humidity'] = tk.DoubleVar()
+ttk.Label(e_info, text="Humidity (g/m3)").grid(row=0, column=0)
+ttk.Spinbox(
+    e_info, textvariable=variables['Humidity'],
+    from_=0.5, tp=52.0, increment=0.01,
+).grid(row=1, column=0, sticky=(tk.W + tk.E))
+
+variables['Light'] = tk.DoubleVar()
+ttk.Label(e_info, text='Light (klx)').grid(row=0, column=1)
+ttk.Spinbox(
+    e_info, textvariable=variables['Light'],
+    from_=0, to=100, increment=0.01
+).grid(row=1, column=1, sticky=(tk.W + tk.E))
+
+variables['Equipment Fault'] = tk.BooleanVar(value=False)
+ttk.Checkbutton(
+    e_info, variable=variables['Equipment Fault'],
+    text='Equipment Fault'
+).grid(row=2, column=0, sticky=tk.W, pady=5)
 
