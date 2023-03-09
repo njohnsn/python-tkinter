@@ -41,7 +41,7 @@ ttk.Combobox(
     r_info, textvariable=variables['Time'], values=time_values
 ).grid(row=1, column=1, sticky=(tk.W + tk.E))
 
-variables['Technician'] - tk.StringVar()
+variables['Technician'] = tk.StringVar()
 ttk.Label(r_info, text='Technician').grid(row=0, column=2)
 ttk.Entry(
     r_info, textvariable=variables['Technician']
@@ -80,7 +80,7 @@ variables['Humidity'] = tk.DoubleVar()
 ttk.Label(e_info, text="Humidity (g/m3)").grid(row=0, column=0)
 ttk.Spinbox(
     e_info, textvariable=variables['Humidity'],
-    from_=0.5, tp=52.0, increment=0.01,
+    from_=0.5, to=52.0, increment=0.01,
 ).grid(row=1, column=0, sticky=(tk.W + tk.E))
 
 variables['Light'] = tk.DoubleVar()
@@ -89,6 +89,13 @@ ttk.Spinbox(
     e_info, textvariable=variables['Light'],
     from_=0, to=100, increment=0.01
 ).grid(row=1, column=1, sticky=(tk.W + tk.E))
+
+variables['Temperature'] = tk.DoubleVar()
+ttk.Label(e_info, text='Temperature (C)').grid(row=0, column=2)
+ttk.Spinbox(
+    e_info, textvariable=variables['Temperature'],
+    from_=0, to=100, increment=0.01
+).grid(row=1, column=2, sticky=(tk.W + tk.E))
 
 variables['Equipment Fault'] = tk.BooleanVar(value=False)
 ttk.Checkbutton(
@@ -106,9 +113,9 @@ ttk.Label(p_info, text='Plants').grid(row=0, column=0)
 ttk.Spinbox(
     p_info, textvariable=variables['Plants'],
     from_=0, to=20, increment=1
-).grid(row=1, column=1, sticky=(tk.W + tk.E))
+).grid(row=1, column=0, sticky=(tk.W + tk.E))
 
-variables['Blossoms'] - tk.IntVar()
+variables['Blossoms'] = tk.IntVar()
 ttk.Label(p_info, text='Blossoms').grid(row=0, column=1)
 ttk.Spinbox(
     p_info, textvariable=variables['Blossoms'],
@@ -116,9 +123,99 @@ ttk.Spinbox(
 ).grid(row=1, column=1, sticky=(tk.W + tk.E))
 
 variables['Fruit'] = tk.IntVar()
-ttk.Label(p_info, text='Fruit').grid(row=0, column=1)
+ttk.Label(p_info, text='Fruit').grid(row=0, column=2)
 ttk.Spinbox(
     p_info, textvariable=variables['Fruit'],
     from_=0, to=1000, increment=1
-).grid(row=1,column=1, sticky=(tk.W + tk.E))
+).grid(row=1,column=2, sticky=(tk.W + tk.E))
+
+variables['Min height'] = tk.DoubleVar()
+ttk.Label(p_info, text='Min Height (cm)').grid(row=2, column=0)
+ttk.Spinbox(
+    p_info, textvariable=variables['Min height'],
+    from_=0, to=1000, increment=0.01
+).grid(row=3, column=0, sticky=(tk.W + tk.E))
+
+variables['Max height'] = tk.DoubleVar()
+ttk.Label(p_info, text='Max Height (cm)').grid(row=2, column=1)
+ttk.Spinbox(
+    p_info, textvariable=variables['Max height'],
+    from_=0, to=1000, increment=0.01
+).grid(row=3, column=1, sticky=(tk.W + tk.E))
+
+variables['Med height'] = tk.DoubleVar()
+ttk.Label(p_info, text='Median Height (cm)').grid(row=2, column=2)
+ttk.Spinbox(
+    p_info, textvariable=variables['Med height'],
+    from_=0, to=1000, increment=0.01
+).grid(row=3, column=2, sticky=(tk.W + tk.E))
+
+ttk.Label(drf, text='Notes').grid()
+notes_inp = tk.Text(drf, width=75, height=10)
+notes_inp.grid(sticky=(tk.W + tk.E))
+
+buttons = tk.Frame(drf)
+buttons.grid(sticky=(tk.E + tk.W))
+save_button = ttk.Button(buttons, text='Save')
+save_button.pack(side = tk.RIGHT)
+
+reset_button = ttk.Button(buttons, text='Reset')
+reset_button.pack(side=tk.RIGHT)
+
+status_variable =tk.StringVar()
+ttk.Label(
+    root, textvariable=status_variable
+
+).grid(sticky=tk.W + tk.E, row=99, padx=10)
+
+def on_reset():
+    """Called when reset button is clicked, or after save"""
+    for variable in variables.values():
+        if isinstance(variable, tk.BooleanVar):
+            variable.set(False)
+        else:
+            variable.set('')
+
+    notes_inp.delete('1.0', tk.END)
+
+def on_save():
+    """Handle save button clicks"""
+
+    global records_saved
+
+    datestring = datetime.today().strftime("%Y-%m-%d")
+    filename = f"abq_data_record_{datestring}.csv"
+    newfile = not Path(filename).exists()
+
+    data = dict()
+    fault = variables['Equipment Fault'].get()
+    for key, variable in variables.items():
+        if fault and key in ("Light", 'Humidity', 'Temperature'):
+            data[key] = ''
+        else:
+            try:
+                data[key] = variable.get()
+            except tk.TclError:
+                status_variable.set(
+                    f'Error in field: {key}, Data not saved!'
+                )
+                return
+    data['Notes'] = notes_inp.get('1.0', tk.END)
+
+    with open(filename,'a', newline='') as fh:
+        csvwriter = csv.DictWriter(fh, fieldnames=data.keys())
+        if newfile:
+            csvwriter.writeheader()
+        csvwriter.writerow(data)
+
+    records_saved +=1
+    status_variable.set(
+        f"{records_saved} records saved this session"
+    )
+    on_reset()
+
+save_button.config(command=on_save)
+
+on_reset()
+root.mainloop()
 
