@@ -1,11 +1,11 @@
 # data_entry_ap.py
 """The ABQ Data Entry Application"""
 
+import csv
 import tkinter as tk
-from tkinter import ttk
 from datetime import datetime
 from pathlib import Path
-import csv
+from tkinter import ttk
 
 variables = dict()
 records_saved = 0
@@ -15,7 +15,7 @@ root.title('ABQ Data Entry Application')
 root.columnconfigure(0, weight=1)
 
 ttk.Label(
-    root, text='ABQ Data Entry Applicaion',
+    root, text='ABQ Data Entry Application',
     font=("TkDefaultFont", 16)
 ).grid()
 
@@ -50,7 +50,7 @@ ttk.Entry(
 variables['Lab'] = tk.StringVar()
 ttk.Label(r_info, text='Lab').grid(row=2, column=0)
 labframe = ttk.Frame(r_info)
-for lab in ( 'A', 'B', 'C'):
+for lab in ('A', 'B', 'C'):
     ttk.Radiobutton(
         labframe, value=lab, text=lab, variable=variables['Lab']
     ).pack(side=tk.LEFT, expand=True)
@@ -61,7 +61,7 @@ ttk.Label(r_info, text="Plot").grid(row=2, column=1)
 ttk.Combobox(
     r_info,
     textvariable=variables['Plot'],
-    values=list(range(1,21))
+    values=list(range(1, 21))
 ).grid(row=3, column=1, sticky=(tk.W + tk.E))
 
 variables['Seed Sample'] = tk.StringVar()
@@ -127,7 +127,7 @@ ttk.Label(p_info, text='Fruit').grid(row=0, column=2)
 ttk.Spinbox(
     p_info, textvariable=variables['Fruit'],
     from_=0, to=1000, increment=1
-).grid(row=1,column=2, sticky=(tk.W + tk.E))
+).grid(row=1, column=2, sticky=(tk.W + tk.E))
 
 variables['Min height'] = tk.DoubleVar()
 ttk.Label(p_info, text='Min Height (cm)').grid(row=2, column=0)
@@ -157,16 +157,17 @@ notes_inp.grid(sticky=(tk.W + tk.E))
 buttons = tk.Frame(drf)
 buttons.grid(sticky=(tk.E + tk.W))
 save_button = ttk.Button(buttons, text='Save')
-save_button.pack(side = tk.RIGHT)
+save_button.pack(side=tk.RIGHT)
 
 reset_button = ttk.Button(buttons, text='Reset')
 reset_button.pack(side=tk.RIGHT)
 
-status_variable =tk.StringVar()
+status_variable = tk.StringVar()
 ttk.Label(
     root, textvariable=status_variable
 
 ).grid(sticky=tk.W + tk.E, row=99, padx=10)
+
 
 def on_reset():
     """Called when reset button is clicked, or after save"""
@@ -177,6 +178,7 @@ def on_reset():
             variable.set('')
 
     notes_inp.delete('1.0', tk.END)
+
 
 def on_save():
     """Handle save button clicks"""
@@ -202,20 +204,20 @@ def on_save():
                 return
     data['Notes'] = notes_inp.get('1.0', tk.END)
 
-    with open(filename,'a', newline='') as fh:
+    with open(filename, 'a', newline='') as fh:
         csvwriter = csv.DictWriter(fh, fieldnames=data.keys())
         if newfile:
             csvwriter.writeheader()
         csvwriter.writerow(data)
 
-    records_saved +=1
+    records_saved += 1
     status_variable.set(
         f"{records_saved} records saved this session"
     )
     on_reset()
 
+
 save_button.config(command=on_save)
 
 on_reset()
 root.mainloop()
-
